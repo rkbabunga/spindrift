@@ -1203,6 +1203,9 @@ def insert_shim(path, type, entry):
     elif type == "flask":
         install_flask_resources(path)
         write_flask_shim(path, entry)
+    elif type == "kubernetes":
+        install_flask_resources(path)
+        write_kubernetes_shim(path, entry)
     elif type in ("flask-eb", "flask-eb-reqs"):
         write_eb_shim(path, entry)
 
@@ -1273,6 +1276,18 @@ def write_flask_shim(path, entry):
         fp.write(indent_entry(entry))
         fp.write("\n")
         fp.write("    return spindrift.wsgi.handler(app, event, context)\n")
+
+
+def write_kubernetes_shim(path, entry):
+    index_path = os.path.join(path, "index.py")
+    with open(index_path, "w") as fp:
+        fp.write("def test_app(host, port):\n")
+        fp.write("    from aws_xray_sdk.core import xray_recorder, patch_all")
+        fp.write(indent_entry(entry))
+        fp.write("    segment = xray_recorder.begin_segment('app')") # Might need to move this
+        fp.write("    xray_recorder.end_segment()") # Might need to move this
+        fp.write('if __name__ == "__main__":\n')
+        fp.write("    app.run()\n")
 
 
 def write_eb_shim(path, entry):
