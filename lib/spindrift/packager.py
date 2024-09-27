@@ -1256,16 +1256,6 @@ def indent_entry(entry, indent="        "):
     return ret_fp.getvalue()
 
 
-def kube_indent(entry, indent="    "):
-    
-    ret_fp = io.StringIO()
-    entry_fp = io.StringIO(entry)
-
-    for line in entry_fp:
-        ret_fp.write(indent + line)
-
-    return ret_fp.getvalue()
-
 def write_flask_shim(path, entry):
     index_path = os.path.join(path, "index.py")
     with open(index_path, "w") as fp:
@@ -1296,7 +1286,7 @@ def write_kubernetes_shim(path, entry):
         fp.write("def launch_app(host, port):\n")
         fp.write("    patch_all()\n")
         fp.write("    segment = xray_recorder.begin_segment('app')\n")
-        fp.write(kube_indent(entry))
+        fp.write(indent_entry(entry, "    "))
         fp.write("\n")
         fp.write("    xray_recorder.end_segment()\n")
         fp.write("    return app\n")
