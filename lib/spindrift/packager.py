@@ -1281,14 +1281,16 @@ def write_flask_shim(path, entry):
 def write_kubernetes_shim(path, entry):
     index_path = os.path.join(path, "index.py")
     with open(index_path, "w") as fp:
-        fp.write("def test_app(host, port):\n")
-        fp.write("    from aws_xray_sdk.core import xray_recorder, patch_all")
+        fp.write("def launch_app(host, port):\n")
+        fp.write("    import warnings\n")
+        fp.write("    warnings.filterwarnings(\"ignore\", message=\"Passing field metadata\")\n")
+        fp.write("    from aws_xray_sdk.core import xray_recorder, patch_all\n")
+        fp.write("    patch_all()\n")
+        fp.write("    segment = xray_recorder.begin_segment(\"app\")\n")
         fp.write(indent_entry(entry))
         fp.write("\n")
-        fp.write("    segment = xray_recorder.begin_segment('app')") # Might need to move this
-        fp.write("    xray_recorder.end_segment()") # Might need to move this
-        fp.write('if __name__ == "__main__":\n')
-        fp.write("    app.run()\n")
+        fp.write("    xray_recorder.end_segment()\n")
+        fp.write("    return app\n")
 
 
 def write_eb_shim(path, entry):
